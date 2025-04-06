@@ -1,0 +1,31 @@
+# Python-related files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+venv/
+env/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Data files
+data/*.xlsx  # Ignore Excel files in the data directory
+
+# Logs and temporary files
+*.log
+*.tmp
+*.bak
+
+# OS-specific files
+.DS_Store  # macOS Finder metadata
+Thumbs.db  # Windows thumbnail cache
+
+# IDE-specific files
+.vscode/
+.idea/
+
+# Node.js dependencies (if used for frontend development)
+node_modules/

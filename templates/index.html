@@ -1,0 +1,88 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gene Knowledge Base</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        #container { display: flex; gap: 20px; }
+        #plots { flex: 2; }
+        #papers { flex: 1; }
+        .plot-container { height: 600px; }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="plots">
+            <div id="volcano" class="plot-container"></div>
+            <div id="boxplot" class="plot-container"></div>
+        </div>
+        <div id="papers">
+            <h3>Related Papers</h3>
+            <div id="paper-list"></div>
+        </div>
+    </div>
+
+    <script>
+        // Volcano plot
+        fetch('/api/volcano-data')
+            .then(r => r.json())
+            .then(data => {
+                const trace = {
+                    x: data.x,
+                    y: data.y,
+                    mode: 'markers',
+                    type: 'scatter',
+                    text: data.genes,
+                    marker: {
+                        color: data.pvals.map(p => p < 0.05 ? '#FF5733' : '#2E86C1'),
+                        size: 8
+                    }
+                };
+                
+                Plotly.newPlot('volcano', [trace], {
+                    title: 'Volcano Plot',
+                    xaxis: { title: 'log2 Fold Change' },
+                    yaxis: { title: '-log10(adj.P.Val)' }
+                });
+
+                document.getElementById('volcano').on('plotly_click', d => {
+                    const gene = d.points[0].text;
+                    updateBoxplot(gene);
+                    updatePapers(gene);
+                });
+            });
+
+        // Boxplot update function
+        function updateBoxplot(gene) {
+            fetch(`/api/boxplot/${gene}`)
+                .then(r => r.json())
+                .then(data => {
+                    const traces = [
+                        { y: data.young, name: 'Young', type: 'box', boxpoints: 'all' },
+                        { y: data.old, name: 'Old', type: 'box', boxpoints: 'all' }
+                    ];
+                    
+                    Plotly.newPlot('boxplot', traces, {
+                        title: `Protein Levels: ${gene}`,
+                        yaxis: { title: 'Expression Level' }
+                    });
+                });
+        }
+
+        // Paper list update
+        function updatePapers(gene) {
+            fetch(`/api/papers/${gene}`)
+                .then(r => r.json())
+                .then(papers => {
+                    const list = papers.map(p => 
+                        `<div style="margin-bottom: 15px;">
+                            <a href="${p.url}" target="_blank">${p.title}</a>
+                        </div>`
+                    ).join('');
+                    document.getElementById('paper-list').innerHTML = list;
+                });
+        }
+    </script>
+</body>
+</html>
