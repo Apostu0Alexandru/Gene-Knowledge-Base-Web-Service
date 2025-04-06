@@ -18,11 +18,19 @@ def index():
 
 @app.route('/api/volcano-data')
 def volcano_data():
+    # Case-insensitive column finding
+    fc_col = next((col for col in limma_df.columns if col.lower() == 'logfc'), None)
+    pval_col = next((col for col in limma_df.columns if 'adj.p.val' in col.lower()), None)
+    gene_col = next((col for col in limma_df.columns if 'entrezgenesymbol' in col.lower()), None)
+    
+    if not all([fc_col, pval_col, gene_col]):
+        return jsonify({'error': 'Required columns not found in data file'})
+    
     data = {
-        'x': limma_df['logFC'].tolist(),
-        'y': (-np.log10(limma_df['adj.P.Val'])).tolist(),
-        'genes': limma_df['EntrezGeneSymbol'].tolist(),
-        'pvals': limma_df['adj.P.Val'].tolist()
+        'x': limma_df[fc_col].tolist(),
+        'y': (-np.log10(limma_df[pval_col])).tolist(),
+        'genes': limma_df[gene_col].tolist(),
+        'pvals': limma_df[pval_col].tolist()
     }
     return jsonify(data)
 
